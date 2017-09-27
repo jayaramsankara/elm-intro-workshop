@@ -9478,10 +9478,6 @@ var _user$project$EffectsPlaygound$notifyView = function (model) {
 			_1: {ctor: '[]'}
 		});
 };
-var _user$project$EffectsPlaygound$notifyUpdate = F2(
-	function (msg, model) {
-		return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-	});
 var _user$project$EffectsPlaygound$Notification = function (a) {
 	return {message: a};
 };
@@ -9494,31 +9490,58 @@ var _user$project$EffectsPlaygound$notifyResultDecoder = A3(
 	_user$project$EffectsPlaygound$NotifyResponse,
 	A2(_elm_lang$core$Json_Decode$field, 'status', _elm_lang$core$Json_Decode$bool),
 	A2(_elm_lang$core$Json_Decode$field, 'clientid', _elm_lang$core$Json_Decode$string));
+var _user$project$EffectsPlaygound$MessageDetails = F2(
+	function (a, b) {
+		return {receipient: a, message: b};
+	});
 var _user$project$EffectsPlaygound$Model = F3(
 	function (a, b, c) {
-		return {userId: a, recivedMessages: b, messageToSend: c};
+		return {screenName: a, myMessages: b, messageToSend: c};
 	});
 var _user$project$EffectsPlaygound$initState = A3(
 	_user$project$EffectsPlaygound$Model,
 	_elm_lang$core$Maybe$Nothing,
 	{ctor: '[]'},
 	_elm_lang$core$Maybe$Nothing);
+var _user$project$EffectsPlaygound$MessageToSend = function (a) {
+	return {ctor: 'MessageToSend', _0: a};
+};
+var _user$project$EffectsPlaygound$RecipeintAdded = function (a) {
+	return {ctor: 'RecipeintAdded', _0: a};
+};
+var _user$project$EffectsPlaygound$MyID = function (a) {
+	return {ctor: 'MyID', _0: a};
+};
 var _user$project$EffectsPlaygound$NotifyResult = function (a) {
 	return {ctor: 'NotifyResult', _0: a};
 };
-var _user$project$EffectsPlaygound$notifyTask = function (model) {
+var _user$project$EffectsPlaygound$notifyAPI = function (model) {
 	return A2(
 		_elm_lang$http$Http$send,
 		_user$project$EffectsPlaygound$NotifyResult,
 		A3(
 			_elm_lang$http$Http$post,
-			'https://gonotify.herokuapp.com/notify/mlittle',
+			'http://gonotify.herokuapp.com/notify/mlittle',
 			A2(_elm_lang$http$Http$stringBody, 'application/json', '{\"message\":\"Test Message\"}'),
 			_user$project$EffectsPlaygound$notifyResultDecoder));
 };
-var _user$project$EffectsPlaygound$Notify = function (a) {
-	return {ctor: 'Notify', _0: a};
-};
+var _user$project$EffectsPlaygound$notifyUpdate = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		switch (_p0.ctor) {
+			case 'Notify':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _user$project$EffectsPlaygound$notifyAPI(model)
+				};
+			case 'NotifyResult':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			default:
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+var _user$project$EffectsPlaygound$Notify = {ctor: 'Notify'};
 var _user$project$EffectsPlaygound$Receive = function (a) {
 	return {ctor: 'Receive', _0: a};
 };
@@ -9533,12 +9556,12 @@ var _user$project$EffectsPlaygound$subscriptions = function (model) {
 					ctor: '::',
 					_0: A2(
 						_elm_lang$websocket$WebSocket$listen,
-						A2(_elm_lang$core$Basics_ops['++'], 'ws://gonotify.herokuapp.com/ws/', s),
+						A2(_elm_lang$core$Basics_ops['++'], 'wss://gonotify.herokuapp.com/ws/', s),
 						_user$project$EffectsPlaygound$Receive),
 					_1: {ctor: '[]'}
 				};
 			},
-			model.userId));
+			model.screenName));
 	return _elm_lang$core$Platform_Sub$batch(websockets);
 };
 var _user$project$EffectsPlaygound$main = _elm_lang$html$Html$program(

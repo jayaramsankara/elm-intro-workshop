@@ -12,8 +12,11 @@ import Json.Decode as Json exposing (..)
 
 type Msg
     = Receive String
-    | Notify String
+    | Notify
     | NotifyResult (Result Http.Error NotifyResponse)
+    | MyID String
+    | RecipeintAdded String
+    | MessageToSend String
 
 
 type alias Notification =
@@ -25,10 +28,16 @@ type alias NotifyResponse =
     { status : Bool, clientid : String }
 
 
+type alias MessageDetails =
+    { receipient : String
+    , message : Notification
+    }
+
+
 type alias Model =
-    { userId : Maybe String
-    , recivedMessages : List Notification
-    , messageToSend : Maybe ( String, Notification )
+    { screenName : Maybe String
+    , myMessages : List Notification
+    , messageToSend : Maybe MessageDetails
     }
 
 
@@ -41,7 +50,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     let
         websockets =
-            Maybe.withDefault [] (Maybe.map (\s -> [ listen ("ws://gonotify.herokuapp.com/ws/" ++ s) Receive ]) model.userId)
+            Maybe.withDefault [] (Maybe.map (\s -> [ listen ("wss://gonotify.herokuapp.com/ws/" ++ s) Receive ]) model.screenName)
     in
         Sub.batch websockets
 
@@ -58,7 +67,15 @@ notifyUpdate : Msg -> Model -> ( Model, Cmd Msg )
 
 
 notifyUpdate msg model =
-    ( model, Cmd.none )
+    case msg of
+        Notify ->
+            ( model, notifyAPI model )
+
+        NotifyResult x ->
+            ( model, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 notifyResultDecoder : Decoder NotifyResponse
@@ -72,9 +89,9 @@ notifyResultDecoder =
 -- Use elm-http functions to make API requests
 
 
-notifyTask : Model -> Cmd Msg
-notifyTask model =
-    Http.send NotifyResult (Http.post ("https://gonotify.herokuapp.com/notify/mlittle") (Http.stringBody "application/json" "{\"message\":\"Test Message\"}") notifyResultDecoder)
+notifyAPI : Model -> Cmd Msg
+notifyAPI model =
+    Http.send NotifyResult (Http.post ("http://gonotify.herokuapp.com/notify/mlittle") (Http.stringBody "application/json" "{\"message\":\"Test Message\"}") notifyResultDecoder)
 
 
 notifyView : Model -> Html Msg
