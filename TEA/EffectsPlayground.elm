@@ -3,6 +3,8 @@ module EffectsPlaygound exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import WebSocket exposing (..)
+import Http exposing (..)
+import Json.Decode as Json exposing (..)
 
 
 --Model
@@ -11,11 +13,16 @@ import WebSocket exposing (..)
 type Msg
     = Receive String
     | Notify String
+    | NotifyResult (Result Http.Error NotifyResponse)
 
 
 type alias Notification =
     { message : String
     }
+
+
+type alias NotifyResponse =
+    { status : Bool, clientid : String }
 
 
 type alias Model =
@@ -54,8 +61,20 @@ notifyUpdate msg model =
     ( model, Cmd.none )
 
 
+notifyResultDecoder : Decoder NotifyResponse
+notifyResultDecoder =
+    Json.map2 NotifyResponse
+        (field "status" Json.bool)
+        (field "clientid" Json.string)
+
+
 
 -- Use elm-http functions to make API requests
+
+
+notifyTask : Model -> Cmd Msg
+notifyTask model =
+    Http.send NotifyResult (Http.post ("https://gonotify.herokuapp.com/notify/mlittle") (Http.stringBody "application/json" "{\"message\":\"Test Message\"}") notifyResultDecoder)
 
 
 notifyView : Model -> Html Msg
